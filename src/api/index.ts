@@ -49,3 +49,39 @@ export function fetchVerify<T>(token: string) {
     data: { token },
   })
 }
+
+export function upsertFile<T>(file: File) {
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDeWJlclp5Z290ZS1BSSIsIm5hbWUiOiJBcnRodXJhaW4gWmhlbmciLCJpYXQiOjE1MTYyMzkwMjJ9.UmFfxiVxXqY30aB0CNJLlIOQBgASbbJZsIdqk4VO58M'
+  const param = new FormData()
+  param.append('file', file)
+  const headers = {
+    'Content-Type': 'multipart/form-data',
+    'Authorization': `Bearer ${token}`,
+  }
+  return post<T>({
+    url: 'https://retrieval.cyberzygote.com/upsert-file',
+    data: param,
+    headers,
+  })
+}
+
+export function queryPrompt<T>(question: string) {
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDeWJlclp5Z290ZS1BSSIsIm5hbWUiOiJBcnRodXJhaW4gWmhlbmciLCJpYXQiOjE1MTYyMzkwMjJ9.UmFfxiVxXqY30aB0CNJLlIOQBgASbbJZsIdqk4VO58M'
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  }
+  const param = {
+    queries: [
+      {
+        query: question,
+        top_k: 3,
+      },
+    ],
+  }
+  return post<T>({
+    url: 'https://retrieval.cyberzygote.com/query',
+    data: param,
+    headers,
+  })
+}

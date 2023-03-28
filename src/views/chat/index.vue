@@ -14,7 +14,7 @@ import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useChatStore, usePromptStore } from '@/store'
-import { fetchChatAPIProcess } from '@/api'
+import { fetchChatAPIProcess, queryPrompt, upsertFile } from '@/api'
 import { t } from '@/locales'
 
 let controller = new AbortController()
@@ -56,10 +56,24 @@ dataSources.value.forEach((item, index) => {
 })
 
 function handleSubmit() {
-  onConversation()
+  handleQueryPrompt()
 }
 
-async function onConversation() {
+async function handleQueryPrompt(): void {
+  const message = prompt.value
+  if (!message || message.trim() === '')
+    return
+  try {
+    const data = await queryPrompt(message)
+    const newPrompt = data.results[0].results[0].text
+    onConversation(newPrompt)
+  }
+  catch (error: any) {
+    global.console.log(error.message ?? 'error')
+  }
+}
+
+async function onConversation(newPrompt) {
   let message = prompt.value
 
   if (loading.value)
@@ -78,7 +92,7 @@ async function onConversation() {
       inversion: true,
       error: false,
       conversationOptions: null,
-      requestOptions: { prompt: message, options: null },
+      requestOptions: { prompt: message + newPrompt, options: null },
     },
   )
   scrollToBottom()
@@ -101,7 +115,7 @@ async function onConversation() {
       inversion: false,
       error: false,
       conversationOptions: null,
-      requestOptions: { prompt: message, options: { ...options } },
+      requestOptions: { prompt: message + newPrompt, options: { ...options } },
     },
   )
   scrollToBottom()
@@ -110,7 +124,7 @@ async function onConversation() {
     let lastText = ''
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
-        prompt: message,
+        prompt: message + newPrompt,
         options,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
@@ -133,7 +147,7 @@ async function onConversation() {
                 error: false,
                 loading: false,
                 conversationOptions: { conversationId: data.conversationId, parentMessageId: data.id },
-                requestOptions: { prompt: message, options: { ...options } },
+                requestOptions: { prompt: message + newPrompt, options: { ...options } },
               },
             )
 
@@ -195,7 +209,7 @@ async function onConversation() {
         error: true,
         loading: false,
         conversationOptions: null,
-        requestOptions: { prompt: message, options: { ...options } },
+        requestOptions: { prompt: message + newPrompt, options: { ...options } },
       },
     )
     scrollToBottomIfAtBottom()
@@ -372,6 +386,29 @@ function handleDelete(index: number) {
   })
 }
 
+function handleImport(): void {
+  const fileInput = document.getElementById('fileInput') as HTMLElement
+  if (fileInput)
+    fileInput.click()
+}
+
+async function importData(event: Event): void {
+  const target = event.target as HTMLInputElement
+  if (!target || !target.files)
+    return
+
+  const file: File = target.files[0]
+  if (!file)
+    return
+  try {
+    const data = await upsertFile(file)
+    global.console.log(data.ids[0])
+  }
+  catch (error: any) {
+    global.console.log(error.message ?? 'error')
+  }
+}
+
 function handleClear() {
   if (loading.value)
     return
@@ -518,6 +555,12 @@ onUnmounted(() => {
     <footer :class="footerClass">
       <div class="w-full max-w-screen-xl m-auto">
         <div class="flex items-center justify-between space-x-2">
+          <input id="fileInput" type="file" style="display:none" @change="importData">
+          <HoverButton @click="handleImport">
+            <span class="text-xl text-[#4f555e] dark:text-white">
+              <SvgIcon icon="ri:upload-2-fill" />
+            </span>
+          </HoverButton>
           <HoverButton @click="handleClear">
             <span class="text-xl text-[#4f555e] dark:text-white">
               <SvgIcon icon="ri:delete-bin-line" />
