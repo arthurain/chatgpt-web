@@ -59,21 +59,23 @@ function handleSubmit() {
   handleQueryPrompt()
 }
 
-async function handleQueryPrompt(): void {
+async function handleQueryPrompt() {
   const message = prompt.value
   if (!message || message.trim() === '')
     return
   try {
-    const data = await queryPrompt(message)
+    const result = await queryPrompt(message)
+    const s = JSON.stringify(result)
+    const data = JSON.parse(s)
     const newPrompt = data.results[0].results[0].text
     onConversation(newPrompt)
   }
   catch (error: any) {
-    global.console.log(error.message ?? 'error')
+    ms.error(t('common.failed'))
   }
 }
 
-async function onConversation(newPrompt) {
+async function onConversation(newPrompt = '') {
   let message = prompt.value
 
   if (loading.value)
@@ -392,7 +394,7 @@ function handleImport(): void {
     fileInput.click()
 }
 
-async function importData(event: Event): void {
+async function importData(event: Event) {
   const target = event.target as HTMLInputElement
   if (!target || !target.files)
     return
@@ -401,11 +403,11 @@ async function importData(event: Event): void {
   if (!file)
     return
   try {
-    const data = await upsertFile(file)
-    global.console.log(data.ids[0])
+    await upsertFile(file)
+    ms.success(t('common.importSuccess'))
   }
   catch (error: any) {
-    global.console.log(error.message ?? 'error')
+    ms.error(t('common.failed'))
   }
 }
 

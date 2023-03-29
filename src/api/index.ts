@@ -50,7 +50,7 @@ export function fetchVerify<T>(token: string) {
   })
 }
 
-export function upsertFile<T>(file: File) {
+export function upsertFile<T = any>(file: File) {
   const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDeWJlclp5Z290ZS1BSSIsIm5hbWUiOiJBcnRodXJhaW4gWmhlbmciLCJpYXQiOjE1MTYyMzkwMjJ9.UmFfxiVxXqY30aB0CNJLlIOQBgASbbJZsIdqk4VO58M'
   const param = new FormData()
   param.append('file', file)
@@ -65,7 +65,7 @@ export function upsertFile<T>(file: File) {
   })
 }
 
-export function queryPrompt<T>(question: string) {
+export function queryPrompt<T = any>(question: string) {
   const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJDeWJlclp5Z290ZS1BSSIsIm5hbWUiOiJBcnRodXJhaW4gWmhlbmciLCJpYXQiOjE1MTYyMzkwMjJ9.UmFfxiVxXqY30aB0CNJLlIOQBgASbbJZsIdqk4VO58M'
   const headers = {
     'Content-Type': 'application/json',
