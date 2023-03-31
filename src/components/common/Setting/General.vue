@@ -35,6 +35,10 @@ const language = computed({
   },
 })
 
+const embedding = computed(() => appStore.embedding.toString())
+
+const model = computed(() => appStore.model)
+
 const themeOptions: { label: string; key: Theme; icon: string }[] = [
   {
     label: 'Auto',
@@ -57,6 +61,16 @@ const languageOptions: { label: string; key: Language; value: Language }[] = [
   { label: '简体中文', key: 'zh-CN', value: 'zh-CN' },
   { label: '繁體中文', key: 'zh-TW', value: 'zh-TW' },
   { label: 'English', key: 'en-US', value: 'en-US' },
+]
+
+const embeddingOptions: { label: string; value: string }[] = [
+  { label: '是', value: 'true' },
+  { label: '否', value: 'false' },
+]
+
+const modelOptions: { label: string; value: string }[] = [
+  { label: 'gpt-3.5', value: 'gpt-3.5-turbo' },
+  { label: 'gpt-4', value: 'gpt-4' },
 ]
 
 function updateUserInfo(options: Partial<UserInfo>) {
@@ -209,6 +223,28 @@ function handleImportButtonClick(): void {
             :value="language"
             :options="languageOptions"
             @update-value="value => appStore.setLanguage(value)"
+          />
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="flex-shrink-0 w-[100px]">{{ $t('setting.embedding') }}</span>
+        <div class="flex flex-wrap items-center gap-4">
+          <NSelect
+            style="width: 140px"
+            :value="embedding"
+            :options="embeddingOptions"
+            @update-value="value => appStore.setEmbedding(value === 'true')"
+          />
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="flex-shrink-0 w-[100px]">{{ $t('setting.model') }}</span>
+        <div class="flex flex-wrap items-center gap-4">
+          <NSelect
+            style="width: 140px"
+            :value="model"
+            :options="modelOptions"
+            @update-value="value => appStore.setModel(value)"
           />
         </div>
       </div>

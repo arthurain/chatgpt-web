@@ -62,6 +62,8 @@ export default {
     chatHistory: '聊天记录',
     theme: '主题',
     language: '语言',
+    embedding: '嵌入数据库',
+    model: '模型',
     api: 'API',
     reverseProxy: '反向代理',
     timeout: '超时',

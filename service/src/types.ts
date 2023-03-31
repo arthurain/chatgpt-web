@@ -9,6 +9,7 @@ export interface RequestProps {
 export interface ChatContext {
   conversationId?: string
   parentMessageId?: string
+  model?: string
 }
 
 export interface ChatGPTUnofficialProxyAPIOptions {

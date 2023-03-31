@@ -23,6 +23,16 @@ export const useAppStore = defineStore('app-store', {
       }
     },
 
+    setEmbedding(embedding: boolean) {
+      this.embedding = embedding
+      this.recordState()
+    },
+
+    setModel(model: string) {
+      this.model = model
+      this.recordState()
+    },
+
     recordState() {
       setLocalSetting(this.$state)
     },

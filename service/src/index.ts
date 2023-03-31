@@ -33,6 +33,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
         firstChunk = false
       },
       systemMessage,
+      model: options.model,
     })
   }
   catch (error) {

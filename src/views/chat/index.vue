@@ -13,9 +13,11 @@ import { useUsingContext } from './hooks/useUsingContext'
 import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
-import { useChatStore, usePromptStore } from '@/store'
+import { useAppStore, useChatStore, usePromptStore } from '@/store'
 import { fetchChatAPIProcess, queryPrompt, upsertFile } from '@/api'
 import { t } from '@/locales'
+
+const appStore = useAppStore()
 
 let controller = new AbortController()
 
@@ -56,7 +58,10 @@ dataSources.value.forEach((item, index) => {
 })
 
 function handleSubmit() {
-  handleQueryPrompt()
+  if (appStore.embedding)
+    handleQueryPrompt()
+  else
+    onConversation()
 }
 
 async function handleQueryPrompt() {
@@ -102,7 +107,10 @@ async function onConversation(newPrompt = '') {
   loading.value = true
   prompt.value = ''
 
-  let options: Chat.ConversationRequest = {}
+  const model = appStore.model
+  let options: Chat.ConversationRequest = {
+    model,
+  }
   const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
 
   if (lastContext && usingContext.value)
@@ -231,7 +239,10 @@ async function onRegenerate(index: number) {
 
   let message = requestOptions?.prompt ?? ''
 
-  let options: Chat.ConversationRequest = {}
+  const model = appStore.model
+  let options: Chat.ConversationRequest = {
+    model,
+  }
 
   if (requestOptions.options)
     options = { ...requestOptions.options }

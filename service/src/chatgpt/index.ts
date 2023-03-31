@@ -30,14 +30,15 @@ if (!isNotEmptyString(process.env.OPENAI_API_KEY) && !isNotEmptyString(process.e
   throw new Error('Missing OPENAI_API_KEY or OPENAI_ACCESS_TOKEN environment variable')
 
 let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
+let api4: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
 
   if (isNotEmptyString(process.env.OPENAI_API_KEY)) {
     const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL
-    const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
-    const model = isNotEmptyString(OPENAI_API_MODEL) ? OPENAI_API_MODEL : 'gpt-3.5-turbo'
+    // const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
+    const model = 'gpt-3.5-turbo'
 
     const options: ChatGPTAPIOptions = {
       apiKey: process.env.OPENAI_API_KEY,
@@ -83,10 +84,64 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
     api = new ChatGPTUnofficialProxyAPI({ ...options })
     apiModel = 'ChatGPTUnofficialProxyAPI'
   }
+})();
+
+(async () => {
+  // More Info: https://github.com/transitive-bullshit/chatgpt-api
+
+  if (isNotEmptyString(process.env.OPENAI_API_KEY)) {
+    const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL
+    // const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
+    const model = 'gpt-4'
+
+    const options: ChatGPTAPIOptions = {
+      apiKey: process.env.OPENAI_API_KEY,
+      completionParams: { model },
+      debug: true,
+    }
+
+    // increase max token limit if use gpt-4
+    if (model.toLowerCase().includes('gpt-4')) {
+      // if use 32k model
+      if (model.toLowerCase().includes('32k')) {
+        options.maxModelTokens = 32768
+        options.maxResponseTokens = 8192
+      }
+      else {
+        options.maxModelTokens = 8192
+        options.maxResponseTokens = 2048
+      }
+    }
+
+    if (isNotEmptyString(OPENAI_API_BASE_URL))
+      options.apiBaseUrl = `${OPENAI_API_BASE_URL}/v1`
+
+    setupProxy(options)
+
+    api4 = new ChatGPTAPI({ ...options })
+    apiModel = 'ChatGPTAPI'
+  }
+  else {
+    const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
+    const options: ChatGPTUnofficialProxyAPIOptions = {
+      accessToken: process.env.OPENAI_ACCESS_TOKEN,
+      debug: true,
+    }
+    if (isNotEmptyString(OPENAI_API_MODEL))
+      options.model = OPENAI_API_MODEL
+
+    if (isNotEmptyString(process.env.API_REVERSE_PROXY))
+      options.apiReverseProxyUrl = process.env.API_REVERSE_PROXY
+
+    setupProxy(options)
+
+    api4 = new ChatGPTUnofficialProxyAPI({ ...options })
+    apiModel = 'ChatGPTUnofficialProxyAPI'
+  }
 })()
 
 async function chatReplyProcess(options: RequestOptions) {
-  const { message, lastContext, process, systemMessage } = options
+  const { message, lastContext, process, systemMessage, model } = options
   try {
     let options: SendMessageOptions = { timeoutMs }
 
@@ -102,14 +157,35 @@ async function chatReplyProcess(options: RequestOptions) {
         options = { ...lastContext }
     }
 
-    const response = await api.sendMessage(message, {
-      ...options,
-      onProgress: (partialResponse) => {
-        process?.(partialResponse)
-      },
-    })
+    if (model === 'gpt-3.5-turbo') {
+      const response = await api.sendMessage(message, {
+        ...options,
+        onProgress: (partialResponse) => {
+          process?.(partialResponse)
+        },
+      })
 
-    return sendResponse({ type: 'Success', data: response })
+      return sendResponse({ type: 'Success', data: response })
+    }
+    else {
+      const response = await api4.sendMessage(message, {
+        ...options,
+        onProgress: (partialResponse) => {
+          process?.(partialResponse)
+        },
+      })
+
+      return sendResponse({ type: 'Success', data: response })
+    }
+
+    // const response = await api.sendMessage(message, {
+    //   ...options,
+    //   onProgress: (partialResponse) => {
+    //     process?.(partialResponse)
+    //   },
+    // })
+
+    // return sendResponse({ type: 'Success', data: response })
   }
   catch (error: any) {
     const code = error.statusCode
