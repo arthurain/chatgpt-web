@@ -72,8 +72,14 @@ async function handleQueryPrompt() {
     const result = await queryPrompt(message)
     const s = JSON.stringify(result)
     const data = JSON.parse(s)
-    const newPrompt = data.results[0].results[0].text
-    onConversation(newPrompt)
+    const score = data.results[0].results[0].score
+    if(score >= 0.85){
+      const newPrompt = " Determine if this question is related to the materials below, and if so, answer based on the materials but pretend it's your own response:"+data.results[0].results[0].text
+      onConversation(newPrompt)
+    }else{
+      onConversation();
+    }
+    
   }
   catch (error: any) {
     ms.error(t('common.failed'))
@@ -107,14 +113,13 @@ async function onConversation(newPrompt = '') {
   loading.value = true
   prompt.value = ''
 
-  const model = appStore.model
-  let options: Chat.ConversationRequest = {
-    model,
-  }
+  let options: Chat.ConversationRequest = {}
   const lastContext = conversationList.value[conversationList.value.length - 1]?.conversationOptions
 
   if (lastContext && usingContext.value)
     options = { ...lastContext }
+  
+  options.model = appStore.model
 
   addChat(
     +uuid,
