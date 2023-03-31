@@ -73,7 +73,7 @@ async function handleQueryPrompt() {
     const s = JSON.stringify(result)
     const data = JSON.parse(s)
     const score = data.results[0].results[0].score
-    if(score >= 0.85){
+    if(score >= 0.8){
       const newPrompt = " Determine if this question is related to the materials below, and if so, answer based on the materials but pretend it's your own response:"+data.results[0].results[0].text
       onConversation(newPrompt)
     }else{
